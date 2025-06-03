@@ -25,13 +25,13 @@ def play_audio(word):
 def repeat_audio(word):
     st.info(f"🔁 Repeating audio for: {word} (mock)")
 
-# Function to check sentence validity
+# Sentence check stub
 def evaluate_german_sentence(sentence, verb):
     if verb in sentence:
         return "✅ Sentence appears correct (mock check)."
     return f"⚠️ It looks like the verb '{verb}' is missing or misused."
 
-# Initialize session state
+# Initialize state
 if "verb" not in st.session_state or st.session_state.get("reset", False):
     st.session_state.verb = random.choice(list(verbs.keys()))
     st.session_state.correct_translation = verbs[st.session_state.verb]
@@ -67,17 +67,7 @@ with audio_col2:
     if st.button("🔁", key="repeat"):
         repeat_audio(st.session_state.verb)
 
-def reset_and_continue():
-    current = st.session_state.verb
-    available = [v for v in verbs if v != current]
-    st.session_state.verb = random.choice(available)
-    st.session_state.correct_translation = verbs[st.session_state.verb]
-    st.session_state.user_translation = ""
-    st.session_state.user_sentence = ""
-    st.session_state.reset = True
-    st.experimental_rerun()
-
-# Evaluate answer
+# Evaluation logic
 if st.session_state.user_translation:
     if st.session_state.user_translation.strip().lower() == st.session_state.correct_translation:
         st.success("✅ Correct translation!")
@@ -87,9 +77,21 @@ if st.session_state.user_translation:
             if "correct" in feedback.lower():
                 if st.button("Next Word"):
                     st.session_state.correct_count += 1
-                    reset_and_continue()
+                    st.session_state.next_word = True
     else:
         st.error(f"❌ Incorrect. The correct translation is '{st.session_state.correct_translation}'.")
         if st.button("Try Another Word"):
             st.session_state.wrong_count += 1
-            reset_and_continue()
+            st.session_state.next_word = True
+
+# Safe word switch outside of button blocks
+if st.session_state.get("next_word", False):
+    current = st.session_state.verb
+    available = [v for v in verbs if v != current]
+    st.session_state.verb = random.choice(available)
+    st.session_state.correct_translation = verbs[st.session_state.verb]
+    st.session_state.user_translation = ""
+    st.session_state.user_sentence = ""
+    st.session_state.reset = True
+    del st.session_state.next_word
+    st.experimental_rerun()
