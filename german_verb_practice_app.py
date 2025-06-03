@@ -23,9 +23,11 @@ def evaluate_german_sentence(sentence, verb):
         return f"⚠️ It looks like the verb '{verb}' is missing or misused."
 
 # Initialize session state
-if "verb" not in st.session_state:
+if "verb" not in st.session_state or "reset" in st.session_state:
     st.session_state.verb = random.choice(list(verbs.keys()))
     st.session_state.correct_translation = verbs[st.session_state.verb]
+    if "reset" in st.session_state:
+        del st.session_state["reset"]
 
 if "correct_count" not in st.session_state:
     st.session_state.correct_count = 0
@@ -63,20 +65,13 @@ if user_translation:
             st.markdown(f"🧠 **Grammar Feedback:**\n\n{feedback}")
 
             if "correct" in feedback.lower():
-                # Load a new verb
-                available_verbs = [v for v in verbs if v != st.session_state.verb]
-                new_verb = random.choice(available_verbs)
-                st.session_state.verb = new_verb
-                st.session_state.correct_translation = verbs[new_verb]
+                st.session_state["reset"] = True
                 st.experimental_rerun()
 
     else:
         st.error(f"❌ Incorrect. The correct translation is: '{st.session_state.correct_translation}'")
         st.session_state.wrong_count += 1
 
-        if st.button("Try another verb"):
-            available_verbs = [v for v in verbs if v != st.session_state.verb]
-            new_verb = random.choice(available_verbs)
-            st.session_state.verb = new_verb
-            st.session_state.correct_translation = verbs[new_verb]
-            st.experimental_rerun()
+# Safe verb change without crashing
+if st.button("Try another verb"):
+    st.session_state["reset"] = True
