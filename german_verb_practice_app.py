@@ -15,50 +15,68 @@ verbs = {
     "trinken": "to drink"
 }
 
-# Optional AI feedback stub
+# Feedback stub (replace with OpenAI later if needed)
 def evaluate_german_sentence(sentence, verb):
     if verb in sentence:
         return "✅ Sentence appears correct (mock check)."
     else:
         return f"⚠️ It looks like the verb '{verb}' is missing or misused."
 
-# INITIALIZE SESSION STATE
+# Initialize session state
 if "verb" not in st.session_state:
     st.session_state.verb = random.choice(list(verbs.keys()))
     st.session_state.correct_translation = verbs[st.session_state.verb]
-    st.session_state.step = 0  # 0: ask, 1: new verb
 
-# MAIN INTERFACE
+if "correct_count" not in st.session_state:
+    st.session_state.correct_count = 0
+if "wrong_count" not in st.session_state:
+    st.session_state.wrong_count = 0
+
+# App title
 st.title("🇩🇪 German Verb Practice with Feedback")
+
+# Score display
+st.markdown(f"✅ **Correct answers:** {st.session_state.correct_count}")
+st.markdown(f"❌ **Incorrect answers:** {st.session_state.wrong_count}")
 
 # Show current verb
 st.markdown(f"### What does the German verb **'{st.session_state.verb}'** mean in English?")
 
-# Only proceed if not in reset mode
+# Step 1: English translation
 user_translation = st.text_input("Enter the English translation:")
+
 if user_translation:
-    if user_translation.lower() in st.session_state.correct_translation.lower():
-        st.success("✅ Correct translation!")
+    if user_translation.lower().strip() == st.session_state.correct_translation:
+        st.success("✅ Correct! Now use it in a sentence:")
+        st.session_state.correct_count += 1
+
+        # Step 2: Ask for sentence usage
+        user_sentence = st.text_area(f"✍️ Write a German sentence using **'{st.session_state.verb}'**:")
+
+        if user_sentence:
+            if st.session_state.verb in user_sentence:
+                st.success("✅ The verb appears in your sentence.")
+            else:
+                st.warning(f"⚠️ The verb '{st.session_state.verb}' was not found.")
+
+            feedback = evaluate_german_sentence(user_sentence, st.session_state.verb)
+            st.markdown(f"🧠 **Grammar Feedback:**\n\n{feedback}")
+
+            if "correct" in feedback.lower():
+                # Load a new verb
+                available_verbs = [v for v in verbs if v != st.session_state.verb]
+                new_verb = random.choice(available_verbs)
+                st.session_state.verb = new_verb
+                st.session_state.correct_translation = verbs[new_verb]
+                st.experimental_rerun()
+
     else:
-        st.error(f"❌ Incorrect. The correct translation is: {st.session_state.correct_translation}")
+        st.error(f"❌ Incorrect. The correct translation is: '{st.session_state.correct_translation}'")
+        st.session_state.wrong_count += 1
 
-    user_sentence = st.text_area(f"✍️ Now write a German sentence using the verb **'{st.session_state.verb}'**:")
-    if user_sentence:
-        if st.session_state.verb in user_sentence:
-            st.success("✅ The verb is in your sentence.")
-        else:
-            st.warning(f"⚠️ The verb '{st.session_state.verb}' was not found.")
-
-        feedback = evaluate_german_sentence(user_sentence, st.session_state.verb)
-        st.markdown(f"🧠 **Grammar Feedback:**\n\n{feedback}")
-
-# Safely switch to a new verb without rerun
-if st.button("Try another verb"):
-    current = st.session_state.verb
-    options = [v for v in verbs if v != current]
-    new_verb = random.choice(options)
-    st.session_state.verb = new_verb
-    st.session_state.correct_translation = verbs[new_verb]
-    st.session_state.step = 0
-    st.info(f"🎲 New verb: **{new_verb}** — scroll up to start!")
-
+        if st.button("Try another verb"):
+            available_verbs = [v for v in verbs if v != st.session_state.verb]
+            new_verb = random.choice(available_verbs)
+            st.session_state.verb = new_verb
+            st.session_state.correct_translation = verbs[new_verb]
+            st.experimental_rerun()
