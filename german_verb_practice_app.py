@@ -60,5 +60,5 @@ if st.button("Try another verb"):
     st.session_state.verb = new_verb
     st.session_state.correct_translation = verbs[new_verb]
     st.session_state.step = 0
-    st.experimental_set_query_params()  # soft-refresh helper (optional)
     st.info(f"🎲 New verb: **{new_verb}** — scroll up to start!")
+
