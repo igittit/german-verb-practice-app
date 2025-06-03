@@ -15,15 +15,26 @@ verbs = {
     "trinken": "to drink"
 }
 
-st.title("🇩🇪 German Verb Practice")
+# (Optional) AI function placeholder
+def evaluate_german_sentence(sentence, verb):
+    if verb in sentence:
+        return "✅ Sentence appears correct (mock check)."
+    else:
+        return f"⚠️ It looks like the verb '{verb}' is missing or misused."
 
+# Setup session state
 if "verb" not in st.session_state:
     st.session_state.verb = random.choice(list(verbs.keys()))
     st.session_state.correct_translation = verbs[st.session_state.verb]
+if "reset" not in st.session_state:
+    st.session_state.reset = False
 
+# UI title
+st.title("🇩🇪 German Verb Practice with Feedback")
 st.markdown(f"### What does the German verb **'{st.session_state.verb}'** mean in English?")
 
-if not st.session_state.get("reset"):
+# Show inputs only if not resetting
+if not st.session_state.reset:
     user_translation = st.text_input("Enter the English translation:")
     
     if user_translation:
@@ -32,27 +43,27 @@ if not st.session_state.get("reset"):
         else:
             st.error(f"❌ Incorrect. The correct translation is: {st.session_state.correct_translation}")
         
-        user_sentence = st.text_area(f"✍️ Now write a German sentence using the verb **'{st.session_state.verb}'**:")
-        
+        user_sentence = st.text_area(f"✍️ Now write a German sentence using **'{st.session_state.verb}'**:")
+
         if user_sentence:
             if st.session_state.verb in user_sentence:
-                st.success("✅ You used the verb in your sentence.")
+                st.success("✅ The verb is in your sentence.")
             else:
-                st.warning(f"⚠️ The verb '{st.session_state.verb}' is not in the sentence.")
+                st.warning(f"⚠️ The verb '{st.session_state.verb}' was not found.")
 
-            st.markdown("🔍 **Evaluating your sentence...**")
+            # Simulated grammar check
             feedback = evaluate_german_sentence(user_sentence, st.session_state.verb)
             st.markdown(f"🧠 **Grammar Feedback:**\n\n{feedback}")
 else:
-    # Clear the reset flag and rerun once
-    st.session_state["reset"] = False
+    # Reset and trigger safe rerun
+    st.session_state.reset = False
     st.experimental_rerun()
 
-# This button triggers the session flag instead of a hard rerun
+# Button logic to load new verb
 if st.button("Try another verb"):
     new_verb = random.choice(list(verbs.keys()))
     while new_verb == st.session_state.verb:
         new_verb = random.choice(list(verbs.keys()))
     st.session_state.verb = new_verb
     st.session_state.correct_translation = verbs[new_verb]
-    st.session_state["reset"] = True
+    st.session_state.reset = True
