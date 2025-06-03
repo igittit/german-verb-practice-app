@@ -60,10 +60,10 @@ if st.session_state.user_translation:
                 st.session_state.correct_count += 1
                 if st.button("Next Verb"):
                     st.session_state.reset = True
-                    st.rerun()
+                    st.experimental_rerun()
     else:
         st.error(f"❌ Incorrect. The correct translation is '{st.session_state.correct_translation}'.")
         st.session_state.wrong_count += 1
         if st.button("Try Another Verb"):
             st.session_state.reset = True
-            st.rerun()
+            st.experimental_rerun()
